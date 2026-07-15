@@ -275,7 +275,16 @@ Tus reglas de oro:
                 };
 
                 // Petición a la API (Nota: Requiere API Key si la sacas de este entorno)
-                const apiKey = ""; 
+               let apiKey = localStorage.getItem("gemini_api_key");
+
+if (!apiKey) {
+    apiKey = prompt("🔧 SISTEMA DE TELEMETRÍA: Introduce tu API KEY de Gemini para iniciar:");
+    if (apiKey) {
+        localStorage.setItem("gemini_api_key", apiKey);
+    } else {
+        alert("Sin API KEY, el ingeniero de pista no puede ayudarte, bro. 🏁");
+    }
+}
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
