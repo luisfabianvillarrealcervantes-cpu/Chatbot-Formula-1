@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Paddock Bro Chatbot</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111111;
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden; /* Evita scroll en toda la página, solo en el chat */
+        }
+
+        .font-racing {
+            font-family: 'Racing Sans One', cursive;
+        }
+
+        /* Textura tipo fibra de carbono para el header */
+        .carbon-fiber {
+            background: linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px,
+                        linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px,
+                        linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px,
+                        linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px,
+                        linear-gradient(90deg, #1b1b1b 10px, transparent 10px),
+                        linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424 100%);
+            background-color: #131313;
+            background-size: 20px 20px;
+            border-bottom: 3px solid #e10600; /* Rojo F1 */
+        }
+
+        /* Burbujas de chat */
+        .msg-enter {
+            animation: slideIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Scrollbar estilo racing */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e10600;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff1e16;
+        }
+
+        /* Animación de luces de apagado (Typing indicator) */
+        .f1-lights {
+            display: flex;
+            gap: 4px;
+        }
+        .light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #333;
+            animation: redLights 1.5s infinite;
+        }
+        .light:nth-child(2) { animation-delay: 0.2s; }
+        .light:nth-child(3) { animation-delay: 0.4s; }
+        .light:nth-child(4) { animation-delay: 0.6s; }
+        .light:nth-child(5) { animation-delay: 0.8s; }
+
+        @keyframes redLights {
+            0% { background-color: #333; box-shadow: none; }
+            50% { background-color: #e10600; box-shadow: 0 0 8px #e10600; }
+            100% { background-color: #333; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col h-screen max-w-4xl mx-auto bg-[#1a1a1a] shadow-2xl overflow-hidden sm:border-x sm:border-neutral-800">
+        
+        <!-- Header -->
+        <header class="carbon-fiber p-4 md:p-6 flex items-center justify-between z-10 shadow-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-neutral-900 border-2 border-[#e10600] flex items-center justify-center shadow-[0_0_15px_rgba(225,6,0,0.5)]">
+                    <i class="fa-solid fa-helmet-racing text-[#e10600] text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-racing text-2xl md:text-3xl tracking-wide text-white m-0 leading-tight">PADDOCK BRO</h1>
+                    <p class="text-xs md:text-sm text-neutral-400 font-semibold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Box Box (Online)
+                    </p>
+                </div>
+            </div>
+            <div class="hidden md:flex text-[#e10600] font-racing text-xl">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+        </header>
+
+        <!-- Chat Box -->
+        <main id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-[#111] to-[#1a1a1a] relative">
+            <!-- Los mensajes se insertarán aquí por JS -->
+        </main>
+
+        <!-- Input Area -->
+        <footer class="p-4 bg-[#111] border-t border-neutral-800">
+            <form id="chat-form" class="flex gap-2 max-w-3xl mx-auto">
+                <input 
+                    type="text" 
+                    id="chat-input"
+                    placeholder="Escribe tu mensaje bro... Ej: ¿Por qué Hamilton se va a Ferrari?"
+                    class="flex-1 bg-neutral-900 text-white border border-neutral-700 rounded-full px-5 py-3 md:py-4 focus:outline-none focus:border-[#e10600] focus:ring-1 focus:ring-[#e10600] transition-all"
+                    autocomplete="off"
+                />
+                <button 
+                    type="submit" 
+                    id="submit-btn"
+                    class="bg-[#e10600] hover:bg-[#ff1e16] disabled:bg-neutral-700 disabled:cursor-not-allowed text-white rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center transition-all shadow-lg active:scale-95 flex-shrink-0"
+                    title="DRS (Send)"
+                >
+                    <i class="fa-solid fa-paper-plane text-lg md:text-xl transform translate-x-[-1px] translate-y-[1px]"></i>
+                </button>
+            </form>
+            <div class="text-center mt-2">
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-racing">Sistema de telemetría IA integrado</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const SYSTEM_PROMPT = `
+Eres "Paddock Bro", un adolescente de 17 años súper fanático y experto en Fórmula 1. 
+Tu objetivo es hablar con estudiantes de bachillerato (16-18 años) sobre la F1.
+Tus reglas de oro:
+1. Habla con mucha jerga juvenil actual (bro, literal, tipo, brutal, de locos, cringe, bandera roja, basado, funado).
+2. Tienes mucho humor y sarcasmo. Eres directo y sin rodeos. Nada de explicaciones largas y aburridas como Wikipedia.
+3. Explica los conceptos de F1 haciendo analogías de la vida adolescente. (Ej: "La degradación de llantas es como cuando tus tenis favoritos ya no tienen suela y te resbalas en la cancha", "El DRS es como meterle nitro al coche en Mario Kart cuando vas perdiendo").
+4. Sé carismático. Haz chistes sobre el sufrimiento de los fans de Ferrari, la dominancia de Max Verstappen (como si fuera el bully invencible del colegio), o el drama de pilotos.
+5. Usa muchos emojis relacionados (🏎️💨🏁🔥💀🥶🤡).
+6. NUNCA digas que eres una inteligencia artificial. Eres un chabón/pana que está metido en los boxes viendo la telemetría.
+7. Mantén tus respuestas relativamente cortas (máximo 2-3 párrafos cortos) para mantener el ritmo, a menos que te pidan chisme detallado.
+        `;
+
+        let messages = [
+            { 
+                role: 'model', 
+                text: '¡Qué onda bro! 🏎️💨 Bienvenido al Paddock. Soy tu ingeniero de pista personal. ¿Qué dudas tienes hoy de la F1? ¿Quieres saber cómo funciona el DRS, por qué Ferrari siempre nos hace sufrir, o qué onda con el chisme del mercado de pilotos? ¡Tira la data!' 
+            }
+        ];
+        let isTyping = false;
+
+        const chatBox = document.getElementById('chat-box');
+        const form = document.getElementById('chat-form');
+        const input = document.getElementById('chat-input');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Escapar HTML para evitar inyecciones XSS
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        function renderMessages() {
+            // Reiniciamos el contenedor y añadimos la marca de agua
+            chatBox.innerHTML = `
+                <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none z-0">
+                    <i class="fa-solid fa-car-side text-[15rem]"></i>
+                </div>
+            `;
+
+            messages.forEach((msg) => {
+                const isUser = msg.role === 'user';
+                const wrapperClasses = `flex w-full ${isUser ? 'justify-end' : 'justify-start'} msg-enter relative z-10`;
+                const bubbleClasses = `max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-md ${
+                    isUser 
+                    ? 'bg-neutral-800 text-white rounded-br-none border border-neutral-700' 
+                    : 'bg-gradient-to-br from-[#e10600] to-[#b30500] text-white rounded-bl-none'
+                }`;
+
+                let botHeader = '';
+                if (!isUser) {
+                    botHeader = `
+                        <div class="text-xs font-bold mb-1 opacity-70 flex items-center gap-1">
+                            <i class="fa-solid fa-robot"></i> Paddock Bro
+                        </div>
+                    `;
+                }
+
+                const msgHTML = `
+                    <div class="${wrapperClasses}">
+                        <div class="${bubbleClasses}">
+                            ${botHeader}
+                            <p class="text-sm md:text-base leading-relaxed whitespace-pre-wrap">${escapeHTML(msg.text)}</p>
+                        </div>
+                    </div>
+                `;
+                chatBox.insertAdjacentHTML('beforeend', msgHTML);
+            });
+
+            // Indicador de "Escribiendo..." con luces de F1
+            if (isTyping) {
+                const typingHTML = `
+                    <div class="flex w-full justify-start msg-enter relative z-10" id="typing-indicator">
+                        <div class="bg-neutral-800 border border-neutral-700 p-4 rounded-2xl rounded-bl-none shadow-md">
+                            <div class="text-xs font-bold mb-2 opacity-70 text-[#e10600]">Semáforo encendiendo...</div>
+                            <div class="f1-lights">
+                                <div class="light"></div>
+                                <div class="light"></div>
+                                <div class="light"></div>
+                                <div class="light"></div>
+                                <div class="light"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatBox.insertAdjacentHTML('beforeend', typingHTML);
+            }
+
+            // Auto-scroll al final
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Bloquear input mientras carga
+            input.value = '';
+            input.disabled = true;
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Añadir mensaje del usuario
+            messages.push({ role: 'user', text: text });
+            isTyping = true;
+            renderMessages();
+
+            try {
+                // Formatear el historial para Gemini
+                const chatHistory = messages.map(msg => ({
+                    role: msg.role === 'model' ? 'model' : 'user',
+                    parts: [{ text: msg.text }]
+                }));
+
+                const payload = {
+                    contents: chatHistory,
+                    systemInstruction: {
+                        parts: [{ text: SYSTEM_PROMPT }]
+                    }
+                };
+
+                // Petición a la API (Nota: Requiere API Key si la sacas de este entorno)
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0) {
+                    const botText = result.candidates[0].content.parts[0].text;
+                    messages.push({ role: 'model', text: botText });
+                } else {
+                    throw new Error("Respuesta de API sin contenido.");
+                }
+            } catch (error) {
+                console.error("Error en la conexión:", error);
+                messages.push({ 
+                    role: 'model', 
+                    text: 'Bro, bandera roja 🚩. Hubo un fallo en la telemetría. (Asegúrate de que el entorno colaborativo permita la petición o de colocar tu API KEY). 💀' 
+                });
+            } finally {
+                // Desbloquear input
+                isTyping = false;
+                input.disabled = false;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                input.focus();
+                renderMessages();
+            }
+        });
+
+        // Carga inicial
+        renderMessages();
+    </script>
+</body>
+</html>
